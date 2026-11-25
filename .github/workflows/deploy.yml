@@ -1,0 +1,25 @@
+name: Publicar web desde Drive
+on:
+  push:
+    paths:
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Descargar y montar la web
+        run: |
+          set -e
+          for id in 12RjnkwsVbSRQzDk0_SVEAzsXpOfVZEdY 1o1BVJIEL7cI-ttHhSDSQqcAoPg67YzMc 1tUAnoXqWIEFg0W2AOJaGv4fVRfgs9e3f 1mEfe6qoE-ZDfAajYO6JwmKSXuYBJxYBl 1BQY6kt-qDQ0yLF0D6EphEp4-dea285fb; do
+            curl -sSL "https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t" >> /tmp/site.zip
+          done
+          echo "54144ac52281f108463b5463d07cf8fc67ce63a4e2c796babdd904b709473203  /tmp/site.zip" | sha256sum -c -
+          unzip -o -q /tmp/site.zip -d .
+      - name: Guardar en el repositorio
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Publicar web Club Datchball Cuenca
