@@ -11,18 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Correos de reserva de la tienda
+      - name: Braga sin talla
         run: |
-          cat > /tmp/patch.py <<'PY'
-          import json,io
-          R=json.loads("[[\"Hola%2C%20quiero%20reservar%3A%0A%0AProducto%3A%20Ch%C3%A1ndal%20oficial%20Datchball%0ACantidad%3A%20%0ATalla%20y%20modalidad%20%28ni%C3%B1o/a%20o%20adulto%29%3A%20%0ANombre%20y%20dorsal%20a%20grabar%20%28opcional%29%3A%20%0ANombre%20y%20apellidos%3A%20%0ATel%C3%A9fono%3A%20%0AColegio%20o%20equipo%3A%20%0A%0AGracias.\", \"Hola%2C%20quiero%20reservar%3A%0A%0AProducto%3A%20Ch%C3%A1ndal%20oficial%20Datchball%0ACantidad%3A%20%0ATalla%20y%20modalidad%20%28ni%C3%B1o/a%20o%20adulto%29%3A%20%0ANombre%20y%20apellidos%3A%20%0ATel%C3%A9fono%3A%20%0AColegio%20o%20equipo%3A%20%0A%0AGracias.\"], [\"Hola%2C%20quiero%20reservar%3A%0A%0AProducto%3A%20Pelota%20oficial%20de%20datchball%0ACantidad%3A%20%0ATalla%20y%20modalidad%20%28ni%C3%B1o/a%20o%20adulto%29%3A%20%0ANombre%20y%20dorsal%20a%20grabar%20%28opcional%29%3A%20%0ANombre%20y%20apellidos%3A%20%0ATel%C3%A9fono%3A%20%0AColegio%20o%20equipo%3A%20%0A%0AGracias.\", \"Hola%2C%20quiero%20reservar%3A%0A%0AProducto%3A%20Pelota%20oficial%20de%20datchball%0ACantidad%3A%20%0ANombre%20y%20apellidos%3A%20%0ATel%C3%A9fono%3A%20%0AColegio%20o%20equipo%3A%20%0A%0AGracias.\"], [\"Hola%2C%20quiero%20reservar%3A%0A%0AProducto%3A%20Braga%20de%20cuello%20Datchball%0ACantidad%3A%20%0ATalla%20y%20modalidad%20%28ni%C3%B1o/a%20o%20adulto%29%3A%20%0ANombre%20y%20dorsal%20a%20grabar%20%28opcional%29%3A%20%0ANombre%20y%20apellidos%3A%20%0ATel%C3%A9fono%3A%20%0AColegio%20o%20equipo%3A%20%0A%0AGracias.\", \"Hola%2C%20quiero%20reservar%3A%0A%0AProducto%3A%20Braga%20de%20cuello%20Datchball%0ACantidad%3A%20%0ATalla%20y%20modalidad%20%28ni%C3%B1o/a%20o%20adulto%29%3A%20%0ANombre%20y%20apellidos%3A%20%0ATel%C3%A9fono%3A%20%0AColegio%20o%20equipo%3A%20%0A%0AGracias.\"]]")
-          s=io.open('tienda.html',encoding='utf-8').read();n=0
-          for a,b in R:
-              n+=s.count(a); s=s.replace(a,b)
-          io.open('tienda.html','w',encoding='utf-8').write(s);print('cambios',n)
-          PY
-          python3 /tmp/patch.py
+          python3 -c "a='Braga%20de%20cuello%20Datchball%0ACantidad%3A%20%0ATalla%20y%20modalidad%20%28ni%C3%B1o/a%20o%20adulto%29%3A%20%0A';b='Braga%20de%20cuello%20Datchball%0ACantidad%3A%20%0A';s=open('tienda.html',encoding='utf-8').read();print('cambios',s.count(a));open('tienda.html','w',encoding='utf-8').write(s.replace(a,b))"
       - name: Guardar en el repositorio
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Simplificar correos de reserva de la tienda
+          commit_message: Braga sin talla en el correo de reserva
