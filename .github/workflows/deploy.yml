@@ -11,16 +11,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Quitar fotos de la galeria
+      - name: Tigres CEIP La Paz
         run: |
-          set -e
-          for i in c7_099; do
-            rm -f img/galeria/$i.jpg
-            sed -i "s#<a href=\"img/galeria/$i.jpg\" class=\"gl\"><img [^>]*></a>##g" club.html
-          done
-          grep -c 'c7_099' club.html || true
+          python3 - <<'PY'
+          R=[('Los Tigres son los actuales campeones','Los Tigres (CEIP La Paz) son los actuales campeones'),
+             ('alt="Los Tigres, campeones','alt="Los Tigres (CEIP La Paz), campeones'),
+             ('<b style="color:#fff">Los Tigres</b> son','<b style="color:#fff">Los Tigres (CEIP La Paz)</b> son'),
+             ('categoría prebenjamín (Los Tigres).','categoría prebenjamín (Los Tigres, CEIP La Paz).')]
+          for f in ['index.html','club.html']:
+              s=open(f,encoding='utf-8').read();n=0
+              for a,b in R:
+                  n+=s.count(a); s=s.replace(a,b)
+              open(f,'w',encoding='utf-8').write(s);print(f,n)
+          PY
       - name: Guardar en el repositorio
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Quitar otra foto que no es del club
-
+          commit_message: Los Tigres (CEIP La Paz) campeones de España
