@@ -14,12 +14,13 @@ jobs:
       - name: Quitar fotos de la galeria
         run: |
           set -e
-          for i in c7_000 c7_054 c7_063 c7_094 c7_102; do
+          for i in c7_099; do
             rm -f img/galeria/$i.jpg
             sed -i "s#<a href=\"img/galeria/$i.jpg\" class=\"gl\"><img [^>]*></a>##g" club.html
           done
-          grep -c 'c7_000\|c7_054\|c7_063\|c7_094\|c7_102' club.html || true
+          grep -c 'c7_099' club.html || true
       - name: Guardar en el repositorio
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Quitar fotos que no son del club
+          commit_message: Quitar otra foto que no es del club
+
