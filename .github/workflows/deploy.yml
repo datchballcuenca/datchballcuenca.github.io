@@ -11,20 +11,45 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Tigres CEIP La Paz
+      - name: Enlace a Instagram
         run: |
-          python3 - <<'PY'
-          R=[('Los Tigres son los actuales campeones','Los Tigres (CEIP La Paz) son los actuales campeones'),
-             ('alt="Los Tigres, campeones','alt="Los Tigres (CEIP La Paz), campeones'),
-             ('<b style="color:#fff">Los Tigres</b> son','<b style="color:#fff">Los Tigres (CEIP La Paz)</b> son'),
-             ('categoría prebenjamín (Los Tigres).','categoría prebenjamín (Los Tigres, CEIP La Paz).')]
-          for f in ['index.html','club.html']:
-              s=open(f,encoding='utf-8').read();n=0
-              for a,b in R:
-                  n+=s.count(a); s=s.replace(a,b)
-              open(f,'w',encoding='utf-8').write(s);print(f,n)
+          cat > /tmp/patch.py <<'PY'
+          import glob,io
+          IG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="currentColor"/></svg>'
+          U='https://www.instagram.com/datchballcuenca/'
+          BTN='<a class="igbtn" href="'+U+'" target="_blank" rel="noopener" aria-label="Síguenos en Instagram: @datchballcuenca" title="Instagram @datchballcuenca">'+IG+'<span>@datchballcuenca</span></a>\n <button class="burger"'
+          BAND=('<section class="band igband"><div class="wrap"><div><h2>Síguenos en Instagram</h2>'
+           '<p>Fotos, vídeos, resultados y novedades del club y de la liga en <b>@datchballcuenca</b>.</p></div>'
+           '<a class="btn igcta" href="'+U+'" target="_blank" rel="noopener">'+IG+' @datchballcuenca</a></div></section>\n')
+          CSS='''
+          /* Instagram */
+          .igbtn{display:inline-flex;align-items:center;gap:8px;color:#fff;text-decoration:none;font-family:var(--cond);font-weight:700;letter-spacing:.5px;font-size:15px;padding:7px 12px;border-radius:10px;background:linear-gradient(45deg,#f9ce34,#ee2a7b 50%,#6228d7);white-space:nowrap}
+          .igbtn svg{width:22px;height:22px;flex:none}
+          .igbtn:hover{filter:brightness(1.1)}
+          @media (max-width:1500px){.igbtn span{display:none}.igbtn{padding:7px}}\n@media (max-width:1500px) and (min-width:1301px){nav.menu a{font-size:15px;padding:8px 9px}}\n@media (max-width:1100px) and (min-width:901px){.brand small{display:none}.brand b{font-size:18px}nav.menu a{font-size:12px;padding:6px 5px;letter-spacing:.3px}}\n.brand{flex:none}.menu{order:2}.igbtn{order:3}.burger{order:4}\n@media (max-width:900px){.brand{flex:0 1 auto;min-width:0}.brand small{overflow:hidden;text-overflow:ellipsis}.igbtn{padding:6px;border-radius:9px}.igbtn svg{width:20px;height:20px}.topin{gap:10px}}
+          @media (max-width:400px){.brand b{font-size:19px}.brand small{font-size:10px;letter-spacing:1px}.brand{gap:8px}}
+          .igband{background:linear-gradient(90deg,#6228d7,#ee2a7b 55%,#f9a334)}
+          .igband p{color:#fff}
+          .btn.igcta{background:#fff;color:#c1166b;display:inline-flex;align-items:center;gap:10px}
+          .btn.igcta svg{width:22px;height:22px}
+          '''
+          import sys,os
+          root=sys.argv[1]
+          for f in glob.glob(os.path.join(root,'*.html')):
+              s=io.open(f,encoding='utf-8').read();o=s
+              if 'class="igbtn"' not in s:
+                  s=s.replace('\n <button class="burger"','\n '+BTN,1)
+              s=s.replace('href="'+U+'" rel="noopener"','href="'+U+'" target="_blank" rel="noopener"')
+              if f.endswith('index.html') and 'igband' not in s:
+                  s=s.replace('<section class="band"><div class="wrap"><div><h2>¡La inscripción',BAND+'<section class="band"><div class="wrap"><div><h2>¡La inscripción',1)
+              if s!=o: io.open(f,'w',encoding='utf-8').write(s)
+              print(os.path.basename(f),s.count('class="igbtn"'),s.count('igband'),s.count('target="_blank" rel="noopener"'))
+          c=os.path.join(root,'css','style.css');s=io.open(c,encoding='utf-8').read()
+          if '.igbtn' not in s: io.open(c,'a',encoding='utf-8').write(CSS)
+          print('css ok')
           PY
+          python3 /tmp/patch.py .
       - name: Guardar en el repositorio
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Los Tigres (CEIP La Paz) campeones de España
+          commit_message: Enlace directo a Instagram @datchballcuenca
