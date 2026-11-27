@@ -11,53 +11,64 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Enlace a resultados en directo
+      - name: Resultados de la liga
         run: |
           cat > /tmp/patch.py <<'PY'
-          import io,os,sys
+          import io,os,sys,re,json
           root=sys.argv[1] if len(sys.argv)>1 else '.'
-          U='https://copafacil.com/-34f3w'
-          def rw(p,f):
-              p=os.path.join(root,p);s=io.open(p,encoding='utf-8').read();n=f(s)
-              if n!=s: io.open(p,'w',encoding='utf-8').write(n)
-              print(p,'cambiado' if n!=s else 'igual')
-          LIVE='<a class="btn live" href="'+U+'" target="_blank" rel="noopener"><i class="dot"></i>Resultados en directo</a>'
-          def idx(s):
-              if 'class="btn live"' in s: return s
-              s=s.replace('<a class="btn ghost" href="liga/index.html">Liga escolar 2026/27</a></div>','<a class="btn ghost" href="liga/index.html">Liga escolar 2026/27</a>'+LIVE+'</div>',1)
-              s=s.replace('<a class="btn" href="liga/index.html">Calendario, equipos y horarios</a></div>','<a class="btn" href="liga/index.html">Calendario, equipos y horarios</a>'+LIVE+'</div>',1)
-              return s
+          RES={"1|0|1":[3,5],"1|0|2":[5,2],"1|0|3":[2,5],"1|0|4":[2,5],"1|0|5":[5,3]}
+          p=os.path.join(root,'liga','index.html');s=io.open(p,encoding='utf-8').read()
+          block='<script id="resultados">/*RES*/const RES='+json.dumps(RES)+';/*/RES*/</script>\n'
+          if '/*RES*/' in s:
+              s=re.sub(r'<script id="resultados">/\*RES\*/.*?/\*/RES\*/</script>\n',lambda m:block,s,flags=re.S)
+          else:
+              i=s.index('<script>\nconst PAY=') if '<script>\nconst PAY=' in s else s.index('<script>')
+              s=s[:i]+block+s[i:]
+          def rep(start,new):
+              global s
+              i=s.index(start);e=s.index('\nfunction',i+10);s=s[:i]+new+s[e:]
+          GC=r'''function gameCard(m,showScore){const a=TM[m.a],b=TM[m.b];const mine=!st.school||schoolKey(a.s)===st.school||schoolKey(b.s)===st.school;
+            const r=(typeof RES!=='undefined')&&RES[m.j+'|'+m.h+'|'+m.p];const sa=r?r[0]:'–',sb=r?r[1]:'–';const wa=r&&r[0]>r[1],wb=r&&r[1]>r[0];
+            return `<article class="game ${mine?'':'dim'} ${r?'done':''}" style="--cc:var(--c${m.c})"><div class="gh"><span class="cat">${CAT[m.c]} · Jornada ${m.r}</span><span>${r?'<b class="fin">Finalizado</b> · ':''}${hm(m.h)} · Pista ${m.p}</span></div>
+            <div class="tm ${wa?'win':''}"><img src="${logo(a)}" alt=""><b>${esc(a.n)}</b>${showScore||r?`<span class="sc">${sa}</span>`:''}</div><div class="vs">CONTRA</div>
+            <div class="tm ${wb?'win':''}"><img src="${logo(b)}" alt=""><b>${esc(b.n)}</b>${showScore||r?`<span class="sc">${sb}</span>`:''}</div></article>`}'''
+          VR=r'''function vResultados(){
+            const has=m=>(typeof RES!=='undefined')&&RES[m.j+'|'+m.h+'|'+m.p];
+            const ms=M.filter(m=>m.j===st.conc&&(!st.cat||m.c===st.cat)&&(!st.school||schoolKey(TM[m.a].s)===st.school||schoolKey(TM[m.b].s)===st.school));
+            const done=ms.filter(has);const hs=[...new Set(done.map(m=>m.h))].sort((a,b)=>b-a);const pend=ms.length-done.length;
+            return `<section class="view"><div><span class="eyebrow">Resultados</span><h1 class="h2">Resultados por concentración</h1><p class="lead">Marcador de cada partido. Se actualiza al terminar cada ronda; en directo, en <a href="https://copafacil.com/-34f3w" target="_blank" rel="noopener">Copa Fácil</a>.</p></div>
+            ${concSeg()}<div class="bar">${schoolSelect('fs')}${catSelect('fc')}</div>
+            ${done.length?hs.map(h=>`<h2 style="font-family:var(--cond);font-weight:800;font-size:22px;margin:6px 0 10px">Ronda de las ${hm(h)} · ${fmtDate(st.conc)}</h2><div class="games">${done.filter(m=>m.h===h).sort((a,b)=>a.p-b.p).map(m=>gameCard(m,true)).join('')}</div>`).join(''):`<div class="empty"><b>Aún no hay resultados de la ${ORD[st.conc]} concentración</b>${DATES[st.conc]?'Se jugará el '+fmtDate(st.conc)+'.':''} Aquí aparecerá el marcador de cada partido al terminar cada ronda.</div>`}
+            ${done.length&&pend?`<p class="note">Quedan ${pend} partidos por jugar en esta concentración${st.cat||st.school?' con este filtro':''}. Se irán publicando al terminar cada ronda.</p>`:''}
+            </section>`}'''
+          VC=r'''function vClasif(){
+            const k=st.confT;const groups=CATS.filter(c=>!st.cat||c===st.cat);const R=(typeof RES!=='undefined')?RES:{};
+            const tab=c=>{const ts=D.teams.filter(t=>t.k===k&&t.c===c);const T={};ts.forEach(t=>T[t.id]={t,pj:0,v:0,e:0,d:0,f:0,ec:0,pts:0});
+             M.filter(m=>m.c===c&&m.conf===k).forEach(m=>{const r=R[m.j+'|'+m.h+'|'+m.p];if(!r||!T[m.a]||!T[m.b])return;const A=T[m.a],B=T[m.b];
+              A.pj++;B.pj++;A.f+=r[0];A.ec+=r[1];B.f+=r[1];B.ec+=r[0];
+              if(r[0]>r[1]){A.v++;B.d++;A.pts+=3}else if(r[1]>r[0]){B.v++;A.d++;B.pts+=3}else{A.e++;B.e++;A.pts++;B.pts++}});
+             return Object.values(T).sort((x,y)=>y.pts-x.pts||(y.f-y.ec)-(x.f-x.ec)||y.f-x.f||x.t.n.localeCompare(y.t.n,'es'))};
+            const any=Object.keys(R).length>0;
+            return `<section class="view"><div><span class="eyebrow">Clasificación</span><h1 class="h2">Clasificación por grupo</h1><p class="lead">Una tabla por categoría en cada conferencia, calculada a partir de los resultados publicados: 3 puntos por victoria y 1 por empate. Desempate: diferencia de eliminados y eliminados a favor.</p></div>
+            <div class="bar"><div class="seg" role="group" aria-label="Conferencia">${['E','O'].map(x=>`<button data-conf="${x}" aria-pressed="${k===x}">Conferencia ${CONF[x]}</button>`).join('')}</div>${catSelect('fc')}</div>
+            ${groups.map(c=>{const rows=tab(c);
+             return `<div><h2 style="font-family:var(--cond);font-weight:800;font-size:24px;margin-bottom:8px"><span class="chip ${c}">${CAT[c]}</span> Conferencia ${CONF[k]} · ${rows.length} equipos</h2>
+             <div class="tblwrap"><table><thead><tr><th class="pos">#</th><th>Equipo</th><th>PJ</th><th>V</th><th>E</th><th>D</th><th title="Eliminados a favor">EF</th><th title="Eliminados en contra">EC</th><th title="Diferencia">DIF</th><th>Puntos</th></tr></thead><tbody>
+             ${rows.map((x,i)=>`<tr><td class="pos">${x.pj?i+1:'–'}</td><td class="team"><img src="${logo(x.t)}" alt="">${esc(x.t.n)}</td><td class="n">${x.pj}</td><td class="n">${x.v}</td><td class="n">${x.e}</td><td class="n">${x.d}</td><td class="n">${x.f}</td><td class="n">${x.ec}</td><td class="n">${x.f-x.ec>0?'+':''}${x.f-x.ec}</td><td class="n"><b>${x.pts}</b></td></tr>`).join('')}
+             </tbody></table></div></div>`}).join('')}
+            <p class="note">${any?'Clasificación provisional: se actualiza al terminar cada ronda. En directo, en <a href="https://copafacil.com/-34f3w" target="_blank" rel="noopener">Copa Fácil</a>.':'La competición empieza el 27 de noviembre: hasta entonces todos los equipos están a cero.'}</p></section>`}'''
+          rep('function gameCard',GC);rep('function vResultados',VR);rep('function vClasif',VC)
           CSS='''
-          /* Resultados en directo */
-          .btn.live{background:#e11d48;color:#fff;display:inline-flex;align-items:center;gap:10px}
-          .btn.live .dot{width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 0 0 rgba(255,255,255,.7);animation:livepulse 1.6s infinite;flex:none}
-          @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}70%{box-shadow:0 0 0 9px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
-          @media (prefers-reduced-motion:reduce){.btn.live .dot{animation:none}}
+          .game.done .tm .sc{font-family:var(--display);font-size:30px;line-height:1;min-width:34px;text-align:right}
+          .game .tm.win b{font-weight:800}.game .tm.win .sc{color:#16a34a}
+          .game .fin{color:#16a34a;text-transform:uppercase;font-size:12px;letter-spacing:1px}
           '''
-          def css(s): return s if '.btn.live' in s else s+CSS
-          LCSS='''
-          .livebtn{display:inline-flex;align-items:center;gap:8px;background:#e11d48;color:#fff;text-decoration:none;font-family:var(--cond);font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:15px;padding:8px 14px;border-radius:10px;white-space:nowrap}
-          .livebtn i,.livecard i{width:10px;height:10px;border-radius:50%;background:#fff;flex:none;animation:livepulse 1.6s infinite}
-          @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}70%{box-shadow:0 0 0 9px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
-          .livecard{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;background:linear-gradient(90deg,#be123c,#e11d48);color:#fff;text-decoration:none;border-radius:16px;padding:18px 22px;margin:18px 0}
-          .livecard b{font-family:var(--display);font-weight:400;font-size:clamp(22px,3.4vw,30px);text-transform:uppercase;line-height:1.05;display:flex;align-items:center;gap:12px}
-          .livecard span{font-size:15px;opacity:.95}
-          .livecard em{font-style:normal;background:#fff;color:#be123c;font-family:var(--cond);font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:9px 16px;border-radius:10px}
-          @media (prefers-reduced-motion:reduce){.livebtn i,.livecard i{animation:none}}
-          @media (max-width:600px){.livebtn{font-size:13px;padding:7px 10px}}
-          '''
-          def liga(s):
-              if 'class="livebtn"' in s: return s
-              s=s.replace('<nav class="menu" id="menu" aria-label="Secciones"></nav>','<nav class="menu" id="menu" aria-label="Secciones"></nav>\n  <a class="livebtn" href="'+U+'" target="_blank" rel="noopener"><i></i>Resultados en directo</a>',1)
-              card='<a class="livecard" href="'+U+'" target="_blank" rel="noopener"><div><b><i></i>Resultados en directo</b><span>Marcadores, clasificaciones y horarios al momento en Copa Fácil</span></div><em>Abrir Copa Fácil →</em></a>\n  <div class="grid g2">'
-              i=s.index('function vInicio(){');j=s.index('<div class="grid g2">',i)
-              s=s[:j]+card+s[j+len('<div class="grid g2">'):]
-              k=s.index('</style>');s=s[:k]+LCSS+s[k:]
-              return s
-          rw('index.html',idx);rw('css/style.css',css);rw('liga/index.html',liga)
+          if '.game.done' not in s:
+              k=s.index('</style>');s=s[:k]+CSS+s[k:]
+          io.open(p,'w',encoding='utf-8').write(s);print('ok',len(RES),'resultados')
           PY
           python3 /tmp/patch.py .
       - name: Guardar en el repositorio
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Enlace a resultados en directo en Copa Facil
+          commit_message: Resultados 1a concentracion Este - ronda 16:00
