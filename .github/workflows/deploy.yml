@@ -11,10 +11,53 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Braga sin talla
+      - name: Enlace a resultados en directo
         run: |
-          python3 -c "a='Braga%20de%20cuello%20Datchball%0ACantidad%3A%20%0ATalla%20y%20modalidad%20%28ni%C3%B1o/a%20o%20adulto%29%3A%20%0A';b='Braga%20de%20cuello%20Datchball%0ACantidad%3A%20%0A';s=open('tienda.html',encoding='utf-8').read();print('cambios',s.count(a));open('tienda.html','w',encoding='utf-8').write(s.replace(a,b))"
+          cat > /tmp/patch.py <<'PY'
+          import io,os,sys
+          root=sys.argv[1] if len(sys.argv)>1 else '.'
+          U='https://copafacil.com/-34f3w'
+          def rw(p,f):
+              p=os.path.join(root,p);s=io.open(p,encoding='utf-8').read();n=f(s)
+              if n!=s: io.open(p,'w',encoding='utf-8').write(n)
+              print(p,'cambiado' if n!=s else 'igual')
+          LIVE='<a class="btn live" href="'+U+'" target="_blank" rel="noopener"><i class="dot"></i>Resultados en directo</a>'
+          def idx(s):
+              if 'class="btn live"' in s: return s
+              s=s.replace('<a class="btn ghost" href="liga/index.html">Liga escolar 2026/27</a></div>','<a class="btn ghost" href="liga/index.html">Liga escolar 2026/27</a>'+LIVE+'</div>',1)
+              s=s.replace('<a class="btn" href="liga/index.html">Calendario, equipos y horarios</a></div>','<a class="btn" href="liga/index.html">Calendario, equipos y horarios</a>'+LIVE+'</div>',1)
+              return s
+          CSS='''
+          /* Resultados en directo */
+          .btn.live{background:#e11d48;color:#fff;display:inline-flex;align-items:center;gap:10px}
+          .btn.live .dot{width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 0 0 rgba(255,255,255,.7);animation:livepulse 1.6s infinite;flex:none}
+          @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}70%{box-shadow:0 0 0 9px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+          @media (prefers-reduced-motion:reduce){.btn.live .dot{animation:none}}
+          '''
+          def css(s): return s if '.btn.live' in s else s+CSS
+          LCSS='''
+          .livebtn{display:inline-flex;align-items:center;gap:8px;background:#e11d48;color:#fff;text-decoration:none;font-family:var(--cond);font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:15px;padding:8px 14px;border-radius:10px;white-space:nowrap}
+          .livebtn i,.livecard i{width:10px;height:10px;border-radius:50%;background:#fff;flex:none;animation:livepulse 1.6s infinite}
+          @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}70%{box-shadow:0 0 0 9px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+          .livecard{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;background:linear-gradient(90deg,#be123c,#e11d48);color:#fff;text-decoration:none;border-radius:16px;padding:18px 22px;margin:18px 0}
+          .livecard b{font-family:var(--display);font-weight:400;font-size:clamp(22px,3.4vw,30px);text-transform:uppercase;line-height:1.05;display:flex;align-items:center;gap:12px}
+          .livecard span{font-size:15px;opacity:.95}
+          .livecard em{font-style:normal;background:#fff;color:#be123c;font-family:var(--cond);font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:9px 16px;border-radius:10px}
+          @media (prefers-reduced-motion:reduce){.livebtn i,.livecard i{animation:none}}
+          @media (max-width:600px){.livebtn{font-size:13px;padding:7px 10px}}
+          '''
+          def liga(s):
+              if 'class="livebtn"' in s: return s
+              s=s.replace('<nav class="menu" id="menu" aria-label="Secciones"></nav>','<nav class="menu" id="menu" aria-label="Secciones"></nav>\n  <a class="livebtn" href="'+U+'" target="_blank" rel="noopener"><i></i>Resultados en directo</a>',1)
+              card='<a class="livecard" href="'+U+'" target="_blank" rel="noopener"><div><b><i></i>Resultados en directo</b><span>Marcadores, clasificaciones y horarios al momento en Copa Fácil</span></div><em>Abrir Copa Fácil →</em></a>\n  <div class="grid g2">'
+              i=s.index('function vInicio(){');j=s.index('<div class="grid g2">',i)
+              s=s[:j]+card+s[j+len('<div class="grid g2">'):]
+              k=s.index('</style>');s=s[:k]+LCSS+s[k:]
+              return s
+          rw('index.html',idx);rw('css/style.css',css);rw('liga/index.html',liga)
+          PY
+          python3 /tmp/patch.py .
       - name: Guardar en el repositorio
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Braga sin talla en el correo de reserva
+          commit_message: Enlace a resultados en directo en Copa Facil
