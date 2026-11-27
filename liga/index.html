@@ -3,7 +3,17 @@
 <title>Liga Escolar de Datchball Cuenca 2026/27 · Club Datchball Cuenca</title>
 <meta name="description" content="Calendario, horarios, equipos y clasificación de la Liga Escolar de Datchball de Cuenca 2026/27.">
 <link rel="icon" href="../img/logo-club.png">
-<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+.livebtn{display:inline-flex;align-items:center;gap:8px;background:#e11d48;color:#fff;text-decoration:none;font-family:var(--cond);font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:15px;padding:8px 14px;border-radius:10px;white-space:nowrap}
+.livebtn i,.livecard i{width:10px;height:10px;border-radius:50%;background:#fff;flex:none;animation:livepulse 1.6s infinite}
+@keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}70%{box-shadow:0 0 0 9px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+.livecard{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;background:linear-gradient(90deg,#be123c,#e11d48);color:#fff;text-decoration:none;border-radius:16px;padding:18px 22px;margin:18px 0}
+.livecard b{font-family:var(--display);font-weight:400;font-size:clamp(22px,3.4vw,30px);text-transform:uppercase;line-height:1.05;display:flex;align-items:center;gap:12px}
+.livecard span{font-size:15px;opacity:.95}
+.livecard em{font-style:normal;background:#fff;color:#be123c;font-family:var(--cond);font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:9px 16px;border-radius:10px}
+@media (prefers-reduced-motion:reduce){.livebtn i,.livecard i{animation:none}}
+@media (max-width:600px){.livebtn{font-size:13px;padding:7px 10px}}
+</style>
 </head><body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
@@ -139,6 +149,7 @@ footer.foot p{text-align:center;font-size:13px;color:#5A6488;margin:8px 0 0}
 <header class="top"><div class="wrap topin">
   <a class="brand" href="../index.html" title="Volver a la web del club"><img id="brandimg" alt="" width="40" height="40"><span><b>LIGA DATCHBALL</b><small>CUENCA · 2026/27</small></span></a>
   <nav class="menu" id="menu" aria-label="Secciones"></nav>
+  <a class="livebtn" href="https://copafacil.com/-34f3w" target="_blank" rel="noopener"><i></i>Resultados en directo</a>
 </div></header>
 <main class="wrap" id="app"></main>
 <footer class="foot"><div class="wrap"><a href="../club.html#patrocinadores" style="display:block;text-align:center;margin-bottom:10px"><img src="../img/grupo-best-cuenca.png" alt="Grupo Best Cuenca, patrocinador principal" style="width:130px;display:inline-block"></a><img id="stripimg" alt="Castilla-La Mancha · Somos deporte · Diputación de Cuenca · Somos deporte 3-18 · EDF · Datchball · Club Datchball Cuenca"><p>Liga Escolar de Datchball de Cuenca 2026/27 · Pabellón CEIP Ciudad Encantada · ciudadencantadadeportiva@gmail.com</p></div></footer>
@@ -181,6 +192,7 @@ function vInicio(){
   <div class="hero"><img src="${A.hero}" alt="Liga Escolar Datchball 2026/27 · Somos Deporte 3-18 · Cuenca">
    <div class="heroband"><div class="nextc"><span class="eyebrow" style="color:var(--lime)">Próxima concentración</span><b class="t">${ORD[next]} concentración · Conferencia Este</b><span>${fmtDate(next)} · 16:00 · Pabellón CEIP Ciudad Encantada</span></div>
    <div class="count" id="count" aria-label="Cuenta atrás"></div></div></div>
+  <a class="livecard" href="https://copafacil.com/-34f3w" target="_blank" rel="noopener"><div><b><i></i>Resultados en directo</b><span>Marcadores, clasificaciones y horarios al momento en Copa Fácil</span></div><em>Abrir Copa Fácil →</em></a>
   <div class="grid g2">
    ${['E','O'].map(k=>{const ts=D.teams.filter(t=>t.k===k);const cn=c=>ts.filter(t=>t.c===c).length;return `<a class="card conf" href="#calendario" data-goconf="${k}" style="--c:var(--${k==='E'?'este':'oeste'});text-decoration:none;color:inherit"><img src="${A['conf_'+k]}" alt="Logo Conferencia ${CONF[k]}"><div><h3>Conferencia ${CONF[k]}</h3><p>${ts.length} equipos · empieza el ${k==='E'?'27 de noviembre':'11 de diciembre'}</p><div class="stat">${CATS.map(c=>`<span class="chip ${c}">${CAT[c]} ${cn(c)}</span>`).join('')}</div></div></a>`}).join('')}
   </div>

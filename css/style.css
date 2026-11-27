@@ -175,3 +175,9 @@ a.card.doc .cb{padding-top:22px}
 .igband p{color:#fff}
 .btn.igcta{background:#fff;color:#c1166b;display:inline-flex;align-items:center;gap:10px}
 .btn.igcta svg{width:22px;height:22px}
+
+/* Resultados en directo */
+.btn.live{background:#e11d48;color:#fff;display:inline-flex;align-items:center;gap:10px}
+.btn.live .dot{width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 0 0 rgba(255,255,255,.7);animation:livepulse 1.6s infinite;flex:none}
+@keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}70%{box-shadow:0 0 0 9px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+@media (prefers-reduced-motion:reduce){.btn.live .dot{animation:none}}
